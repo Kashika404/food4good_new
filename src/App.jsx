@@ -37,6 +37,10 @@ import Footer from './components/Footer';
 import Login from './components/Login';
 import { AppContext } from './context/AppContext';
 import DonorDash from './pages/DonorDash';
+import ReceiverDash from './pages/ReceiverDash';
+import VolunteerDash from './pages/VolunteerDash'; 
+import ProfilePage from './pages/ProfilePage'; 
+import SettingsPage from './pages/SettingsPage';
 
 const App = () => {
   const { showLogin } = useContext(AppContext);
@@ -52,6 +56,11 @@ const App = () => {
       <Routes>
         <Route path='/' element={<Home />} />
         <Route path='/donor-dash' element={<DonorDash />} />
+        <Route path='/receiver-dash' element={<ReceiverDash/>}/>
+        <Route path="/volunteer-dash" element={<VolunteerDash />} />
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/settings" element={<SettingsPage />} /> 
+        
       </Routes>
 
       <Footer />
