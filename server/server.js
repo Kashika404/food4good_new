@@ -33,12 +33,19 @@ const __dirname = path.resolve();
 //     optionsSuccessStatus: 200
 // };
 
-const corsOptions = {
-    origin: ['http://localhost:5173', 'https://food4goodmern.vercel.app'],
-    credentials: true,
-    optionsSuccessStatus: 200
-};
+// const corsOptions = {
+//     origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+//     optionsSuccessStatus: 200
+// };
 
+// The new, corrected code
+const corsOptions = {
+  origin: process.env.CORS_ORIGIN || "http://localhost:5173",
+  methods: "GET,POST,PUT,DELETE",
+  allowedHeaders: "Content-Type, Authorization, token",
+  credentials: true,
+  optionsSuccessStatus: 200
+};
 app.use(cors(corsOptions));
 
 app.use(express.json());
