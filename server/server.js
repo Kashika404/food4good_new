@@ -42,7 +42,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 app.use(express.json());
-app.use(cors());
+
 
 
 const limiter = rateLimit({
