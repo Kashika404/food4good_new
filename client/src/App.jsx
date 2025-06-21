@@ -1,32 +1,4 @@
-// import React, { useContext } from 'react'
-// import Home from './pages/Home'
-// import {Routes,Route} from 'react-router-dom'
-// import Navbar from './components/Navbar'
-// import Footer from './components/Footer'
-// import Login from './components/Login'
-// import { AppContext } from './context/AppContext'
-// import DonorDash from './pages/DonorDash'
 
-
-// const App = () => {
-//   const{showLogin}=useContext(AppContext)
-//   return (
-//     <div className='px-4 sm:px-10 md:px-14 lg:px-28 min-h-screen bg-gradient-to-b from-teal-50 to-orange-50 '>
-     
-//      {showLogin&&<Login/> }
-//      <Navbar/>
-//       <Routes>
-        
-//         <Route path='/' element={<Home/>}></Route>   
-//         <Route path='/donor-dash' element ={<DonorDash/>}></Route>  
-//       </Routes>
-//       <Footer/>
-      
-//     </div>
-//   )
-// }
-
-// export default App
 
 
 import React, { useContext } from 'react';
@@ -56,7 +28,7 @@ const ProtectedRoute = ({ children, role }) => {
   const { token } = useContext(AppContext);
   
   if (!token) {
-    // If user is not logged in, redirect to homepage
+    
     return <Navigate to="/" />;
   }
 
@@ -65,11 +37,11 @@ const ProtectedRoute = ({ children, role }) => {
     const userRole = decodedToken.role; 
 
     if (userRole !== role) {
-      // If user's role does not match the required role, redirect
+     
       return <Navigate to="/" />;
     }
   } catch (error) {
-    // If token is invalid, redirect
+    
     console.error("Invalid token:", error);
     return <Navigate to="/" />;
   }

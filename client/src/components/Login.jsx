@@ -232,7 +232,7 @@ const Login = () => {
                       <input name="fullName" type="text" className='outline-none text-sm' placeholder='Full Name' required value={data.fullName} onChange={onChangeHandler} />
                     </div>
                     
-                    {/* --- NEW ADDRESS & IDENTITY FIELDS --- */}
+                  
                     <div className='border px-6 py-2 flex items-center gap-2 rounded-full mt-4'>
                         <input name="street" type="text" className='outline-none text-sm w-full' placeholder='Street Address' required value={data.street} onChange={onChangeHandler} />
                     </div>

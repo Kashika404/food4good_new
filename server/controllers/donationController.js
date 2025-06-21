@@ -744,6 +744,7 @@
 
 import DonationModel from "../models/DonationModel.js";
 import TaskModel from "../models/TaskModel.js";
+import { sendDonationClaimedEmail } from '../services/emailService.js';
 import UserModel from "../models/UserModel.js";
 
 // --- Donor Functions ---
@@ -916,6 +917,8 @@ const claimDonation = async (req, res) => {
             donationId: donation._id,
             urgency: 'Today'
         }).save();
+
+          await sendDonationClaimedEmail(donation.donorId, receiver, donation);
 
         res.json({ success: true, message: "Donation claimed successfully! A task has been created for volunteers." });
 
