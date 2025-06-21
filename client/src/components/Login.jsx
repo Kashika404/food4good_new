@@ -166,10 +166,17 @@ const Login = () => {
         {state === 'Forgot Password' ? (
             <>
                 <p className='text-sm mt-2 mb-4'>Enter your email and we'll send a link to reset your password.</p>
-                <div className='border px-6 py-2 flex items-center gap-2 rounded-full mt-4'>
+                {/* <div className='border px-6 py-2 flex items-center gap-2 rounded-full mt-4'>
                     <img src={assets.email_icon} alt="email" />
                     <input name="email" type="email" className='outline-none text-sm' placeholder='Email id' required value={data.email} onChange={onChangeHandler} />
-                </div>
+                </div> */}
+
+
+                {/* Your current code */}
+<div className='border px-6 py-2 flex items-center gap-2 rounded-full mt-4'>
+  <img src={assets.email_icon} alt="email" />
+  <input name="email" type="email" className='outline-none text-sm' placeholder='Email id' required value={data.email} onChange={onChangeHandler} />
+</div>
                 {message && <p className="text-green-600 text-sm mt-4 text-center">{message}</p>}
             </>
         ) : (
@@ -265,6 +272,8 @@ const Login = () => {
                   <img src={assets.email_icon} alt="email" />
                   <input name="email" type="email" className='outline-none text-sm' placeholder='Email id' required value={data.email} onChange={onChangeHandler} />
                 </div>
+
+                
                 <div className='border px-6 py-2 flex items-center gap-2 rounded-full mt-4'>
                   <img src={assets.lock_icon} alt="lock" />
                   <input name="password" type="password" className='outline-none text-sm' placeholder='Password' required value={data.password} onChange={onChangeHandler} />
@@ -294,3 +303,5 @@ const Login = () => {
 };
 
 export default Login;
+
+
