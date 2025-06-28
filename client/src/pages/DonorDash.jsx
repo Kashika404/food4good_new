@@ -191,23 +191,48 @@ const DonorDash = () => {
     const navigate = useNavigate();
     
     const [donations, setDonations] = useState([]);
+    const [stats, setStats] = useState({ available: 0, claimed: 0, total: 0 });
     const [showAddDonationModal, setShowAddDonationModal] = useState(false);
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
     const profileMenuRef = useRef(null);
 
     
-    const fetchDonations = async () => {
-        if (token) {
-            try {
-                const response = await axios.get(`${url}/api/donation/list`, { headers: { token } });
-                if (response.data.success) {
-                    setDonations(response.data.data);
-                }
-            } catch (error) {
-                console.error("Error fetching donations:", error);
+    // const fetchDonations = async () => {
+    //     if (token) {
+    //         try {
+    //             const response = await axios.get(`${url}/api/donation/list`, { headers: { token } });
+    //             if (response.data.success) {
+    //                 setDonations(response.data.data);
+    //             }
+    //         } catch (error) {
+    //             console.error("Error fetching donations:", error);
+    //         }
+    //     }
+    // };
+
+        const fetchDonations = async () => {
+        if (!token) return;
+        try {
+            const response = await axios.get(`${url}/api/donation/list`, { headers: { token } });
+            if (response.data.success) {
+                setDonations(response.data.data);
             }
+        } catch (error) {
+            console.error("Error fetching donations:", error);
+            toast.error("Could not load your donations.");
         }
     };
+    const fetchStats = async () => {
+        if (!token) return;
+        try {
+            const response = await axios.get(`${url}/api/donation/stats`, { headers: { token } });
+            if (response.data.success) {
+                setStats(response.data.stats);
+            }
+        } catch (error) {
+            console.error("Error fetching stats:", error);
+        }
+    }
 
    
     // useEffect(() => {
@@ -217,19 +242,15 @@ const DonorDash = () => {
     // }, [token]);
 
     useEffect(() => {
-        // Only run fetchDonations AFTER the initial loading is false.
         if (!loading) {
-            fetchDonations();
+            if (token) {
+                fetchDonations();
+                fetchStats();
+            } else {
+                navigate('/');
+            }
         }
     }, [token, loading]);
-
-        if (loading) {
-        return (
-            <div className="flex justify-center items-center min-h-screen">
-                <p>Loading your dashboard...</p>
-            </div>
-        );
-    }
 
   
     const handleQuickAdd = async (newItemData) => {
@@ -306,7 +327,16 @@ const DonorDash = () => {
         navigate('/');
     };
 
-    useEffect(() => {
+    // useEffect(() => {
+    //     const handleClickOutside = (event) => {
+    //         if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
+    //             setIsProfileMenuOpen(false);
+    //         }
+    //     };
+    //     if (isProfileMenuOpen) document.addEventListener('mousedown', handleClickOutside);
+    //     return () => document.removeEventListener('mousedown', handleClickOutside);
+    // }, [isProfileMenuOpen]);
+  useEffect(() => {
         const handleClickOutside = (event) => {
             if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
                 setIsProfileMenuOpen(false);
@@ -315,6 +345,10 @@ const DonorDash = () => {
         if (isProfileMenuOpen) document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [isProfileMenuOpen]);
+    
+    if (loading) {
+        return <div className="flex justify-center items-center min-h-screen"><p>Loading application...</p></div>;
+    }
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-green-50/50 to-orange-50/50">
