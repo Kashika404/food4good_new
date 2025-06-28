@@ -10,6 +10,7 @@ const AppContextProvider = (props) => {
     const [user, setUser] = useState(null);
     const [token, setToken] = useState(null);
     const [showLogin, setShowLogin] = useState(false);
+    const [loading, setLoading] = useState(true);
     
     
     useEffect(() => {
@@ -19,6 +20,8 @@ const AppContextProvider = (props) => {
                 setToken(storedToken);
                 
             }
+            setLoading(false);
+            
         };
         loadUserFromToken();
     }, []);
@@ -31,6 +34,7 @@ const AppContextProvider = (props) => {
         showLogin,
         setShowLogin,
         url, 
+        loading,
     };
     
     return (
