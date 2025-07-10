@@ -58,7 +58,10 @@ const AdminDash = () => {
                 toast.error("Failed to reject user.");
             }
         }
-         const handleCleanupTasks = async () => {
+        
+    };
+
+     const handleCleanupTasks = async () => {
         if (window.confirm("Are you sure you want to permanently delete all invalid tasks? This action cannot be undone.")) {
             try {
                 const response = await axios.delete(`${url}/api/task/cleanup-orphaned`, { headers: { token } });
@@ -69,7 +72,6 @@ const AdminDash = () => {
                 toast.error("Failed to clean up tasks.");
             }
         }
-    };
     };
 
     return (
