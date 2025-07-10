@@ -3,36 +3,7 @@ import DonationModel from "../models/DonationModel.js";
 import UserModel from "../models/UserModel.js";
 
 import { sendDonationCompletedEmail } from '../services/emailService.js';
-// --- LIST ALL OPEN TASKS FOR VOLUNTEERS ---
-// export const listOpenTasks = async (req, res) => {
-//     try {
-//         // Find tasks that are 'Open' and populate all necessary details for the frontend card
-//         const tasks = await TaskModel.find({ status: 'Open' })
-//             .populate({
-//                 path: 'donationId',
-//                 model: DonationModel,
-//                 select: 'title type quantity',
-//                 populate: [
-//                     { path: 'donorId', model: UserModel, select: 'fullName address roleDetails.organizationName' },
-//                     { path: 'claimedByReceiverId', model: UserModel, select: 'fullName address roleDetails.organizationName' }
-//                 ]
-//             });
-            
-//         res.json({ success: true, data: tasks });
-//     } catch (error) {
-//         console.error("Error listing open tasks:", error);
-//         res.status(500).json({ success: false, message: "An error occurred while fetching tasks." });
-//     }
-// };
 
-
-
-
-// In server/controllers/taskController.js
-
-// ... (keep the existing listOpenTasks and assignTaskToVolunteer functions)
-
-// --- NEW: GET VOLUNTEER STATISTICS ---
 export const getVolunteerStats = async (req, res) => {
     try {
         const volunteerId = req.userId;
@@ -53,7 +24,7 @@ export const getVolunteerStats = async (req, res) => {
     }
 };
 
-// --- NEW: LIST TASKS FOR A SPECIFIC VOLUNTEER ---
+
 export const listVolunteerTasks = async (req, res) => {
     try {
         const query = { volunteerId: req.userId };
@@ -80,7 +51,7 @@ export const listVolunteerTasks = async (req, res) => {
     }
 };
 
-// Make sure to add the new functions to your export list if you're not exporting them individually
+
 
 export const listOpenTasks = async (req, res) => {
     try {
@@ -88,7 +59,7 @@ export const listOpenTasks = async (req, res) => {
             .populate({
                 path: 'donationId',
                 model: DonationModel,
-                // --- THIS IS THE FIX: The restrictive 'select' statement below has been removed ---
+                
                 populate: [
                     { path: 'donorId', model: UserModel, select: 'fullName address roleDetails.organizationName' },
                     { path: 'claimedByReceiverId', model: UserModel, select: 'fullName address roleDetails.organizationName' }
@@ -102,11 +73,10 @@ export const listOpenTasks = async (req, res) => {
     }
 };
 
-// --- ASSIGN A TASK TO THE LOGGED-IN VOLUNTEER ---
 export const assignTaskToVolunteer = async (req, res) => {
     try {
         const { taskId } = req.body;
-        const volunteerId = req.userId; // from authMiddleware
+        const volunteerId = req.userId; 
 
         const task = await TaskModel.findById(taskId);
         if (!task) {
@@ -116,7 +86,7 @@ export const assignTaskToVolunteer = async (req, res) => {
             return res.status(400).json({ success: false, message: "Task is no longer available." });
         }
 
-        // Assign the task to the volunteer
+       
         task.status = 'Assigned';
         task.volunteerId = volunteerId;
         await task.save();
@@ -130,30 +100,89 @@ export const assignTaskToVolunteer = async (req, res) => {
 };
 
 
+// export const completeTask = async (req, res) => {
+//     try {
+//         const { taskId } = req.params;
+//         const volunteerId = req.userId;
+
+        
+
+//         const task = await TaskModel.findById(taskId);
+//         if (!task) {
+//             return res.status(404).json({ success: false, message: "Task not found." });
+//         }
+
+       
+//         if (task.volunteerId.toString() !== volunteerId) {
+//             return res.status(403).json({ success: false, message: "You are not authorized to complete this task." });
+//         }
+
+       
+//         task.status = 'Completed';
+//         await task.save();
+
+//         await DonationModel.findByIdAndUpdate(task.donationId, { status: 'Completed' });
+//           const donor = task.donationId.donorId;
+//         const receiver = task.donationId.claimedByReceiverId;
+//         await sendDonationCompletedEmail(donor, receiver, volunteer, task.donationId);
+
+
+//         res.json({ success: true, message: "Task marked as complete! Thank you for your help." });
+
+//     } catch (error) {
+//         console.error("Error completing task:", error);
+//         res.status(500).json({ success: false, message: "An error occurred." });
+//     }
+// };
+
+
+// In taskController.js
+
 export const completeTask = async (req, res) => {
     try {
         const { taskId } = req.params;
         const volunteerId = req.userId;
 
-        const task = await TaskModel.findById(taskId);
+        // <-- FIX 1: Fetch the volunteer's user object to get their details for the email -->
+        const volunteer = await UserModel.findById(volunteerId);
+        if (!volunteer) {
+            return res.status(404).json({ success: false, message: "Volunteer user not found." });
+        }
+
+        // <-- FIX 2: Populate all the necessary nested data when fetching the task -->
+        const task = await TaskModel.findById(taskId).populate({
+            path: 'donationId',
+            model: DonationModel,
+            populate: [
+                { path: 'donorId', model: UserModel },
+                { path: 'claimedByReceiverId', model: UserModel }
+            ]
+        });
+
         if (!task) {
             return res.status(404).json({ success: false, message: "Task not found." });
         }
 
-        // Security check: ensure the person completing the task is the one assigned to it
         if (task.volunteerId.toString() !== volunteerId) {
             return res.status(403).json({ success: false, message: "You are not authorized to complete this task." });
         }
+        
+        // Prevent re-completing an already completed task
+        if (task.status === 'Completed') {
+            return res.status(400).json({ success: false, message: "This task has already been completed." });
+        }
 
-        // Update the task and the original donation
         task.status = 'Completed';
         await task.save();
 
-        await DonationModel.findByIdAndUpdate(task.donationId, { status: 'Completed' });
-          const donor = task.donationId.donorId;
-        const receiver = task.donationId.claimedByReceiverId;
-        await sendDonationCompletedEmail(donor, receiver, volunteer, task.donationId);
+        await DonationModel.findByIdAndUpdate(task.donationId._id, { status: 'Completed' });
 
+        // Now these variables will have the full user objects
+        const donor = task.donationId.donorId;
+        const receiver = task.donationId.claimedByReceiverId;
+
+        // This function call will now work correctly
+        await sendDonationCompletedEmail(donor, receiver, volunteer, task.donationId);
 
         res.json({ success: true, message: "Task marked as complete! Thank you for your help." });
 

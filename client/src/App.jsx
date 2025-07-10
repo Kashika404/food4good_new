@@ -1,6 +1,3 @@
-
-
-
 import React, { useContext } from 'react';
 import Home from './pages/Home';
 import { Routes, Route, useLocation,Navigate } from 'react-router-dom';
@@ -53,14 +50,14 @@ const ProtectedRoute = ({ children, role }) => {
 
 const App = () => {
   const { showLogin } = useContext(AppContext);
-  const location = useLocation(); // Hook to get current path
+  const location = useLocation(); 
 
   return (
     <div className='px-4 sm:px-10 md:px-14 lg:px-28 min-h-screen bg-gradient-to-b from-teal-50 to-orange-50'>
 
       <ToastContainer
         position="top-right"
-        autoClose={4000} // Toasts will close after 4 seconds
+        autoClose={4000} 
         hideProgressBar={false}
         newestOnTop={false}
         closeOnClick
