@@ -156,21 +156,42 @@ export const completeTask = async (req, res) => {
     }
 };
 
+
+
 export const deleteOrphanedTasks = async (req, res) => {
     try {
-        const allTasks = await TaskModel.find({}).populate('donationId');
+      
+        const allTasks = await TaskModel.find({}).populate({
+            path: 'donationId',
+            populate: [
+                { path: 'donorId' },
+                { path: 'claimedByReceiverId' }
+            ]
+        });
 
-        const orphanedTaskIds = allTasks
-            .filter(task => !task.donationId)
-            .map(task => task._id);
+      
+        const invalidTaskIds = allTasks
+            .filter(task => {
+               
+                if (!task.donationId) {
+                    return true;
+                }
+                   const donation = task.donationId;
+                if (!donation.title || !donation.donorId || !donation.claimedByReceiverId) {
+                    return true;
+                }
 
-        if (orphanedTaskIds.length > 0) {
-            await TaskModel.deleteMany({ _id: { $in: orphanedTaskIds } });
+                return false;
+            })
+            .map(task => task._id); 
+
+        if (invalidTaskIds.length > 0) {
+            await TaskModel.deleteMany({ _id: { $in: invalidTaskIds } });
         }
 
         res.json({
             success: true,
-            message: `Cleanup successful. Removed ${orphanedTaskIds.length} orphaned task(s).`
+            message: `Cleanup successful. Removed ${invalidTaskIds.length} invalid task(s).`
         });
 
     } catch (error) {
