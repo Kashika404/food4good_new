@@ -2,6 +2,8 @@
 import UserModel from "../models/UserModel.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
+import DonationModel from "../models/DonationModel.js"; // ✅ ENSURE THIS LINE EXISTS
+import TaskModel from "../models/TaskModel.js";
 import validator from "validator";
 import nodemailer from 'nodemailer';
 import { validationResult } from "express-validator";
@@ -181,33 +183,41 @@ const updateNotificationPreferences = async (req, res) => {
 //     }
 // };
 
+// In server/controllers/userController.js
+
 const deleteAccount = async (req, res) => {
     try {
         const userId = req.userId;
 
-        
+     
         const userDonations = await DonationModel.find({ donorId: userId });
         if (userDonations.length > 0) {
             const donationIds = userDonations.map(d => d._id);
-            
             await TaskModel.deleteMany({ donationId: { $in: donationIds } });
-           
             await DonationModel.deleteMany({ donorId: userId });
         }
 
-      
-        await DonationModel.updateMany(
-            { claimedByReceiverId: userId },
-            { $set: { status: 'Available' }, $unset: { claimedByReceiverId: 1 } }
-        );
-
        
+        const claimedDonations = await DonationModel.find({ claimedByReceiverId: userId });
+        if (claimedDonations.length > 0) {
+            const claimedDonationIds = claimedDonations.map(d => d._id);
+            
+            await TaskModel.deleteMany({ donationId: { $in: claimedDonationIds } });
+
+           
+            await DonationModel.updateMany(
+                { _id: { $in: claimedDonationIds } },
+                { $set: { status: 'Available' }, $unset: { claimedByReceiverId: 1 } }
+            );
+        }
+
+        
         await TaskModel.updateMany(
             { volunteerId: userId, status: 'Assigned' },
-            { $set: { status: 'Open' }, $unset: { volunteerId: "" } }
+            { $set: { status: 'Open' }, $unset: { volunteerId: 1 } }
         );
 
-       
+      
         await UserModel.findByIdAndDelete(userId);
 
         res.json({ success: true, message: "Account and all associated data have been successfully deleted." });
@@ -217,9 +227,6 @@ const deleteAccount = async (req, res) => {
         res.status(500).json({ success: false, message: "An error occurred during account deletion." });
     }
 };
-
-
-
 const forgotPassword = async (req, res) => {
     const { email } = req.body;
     try {
