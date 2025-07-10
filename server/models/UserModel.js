@@ -37,6 +37,10 @@ const userSchema = new mongoose.Schema({
         type: String,
         enum: ['Pending', 'Verified', 'Rejected'],
         default: 'Pending'
+    },
+     hasBeenWelcomed: {
+        type: Boolean,
+        default: false
     }
 }, { minimize: false, timestamps: true });
 

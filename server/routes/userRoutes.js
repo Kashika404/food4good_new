@@ -11,7 +11,8 @@ import {
   deleteAccount,
   forgotPassword,
   resetPassword,
-  updateUserProfile
+  updateUserProfile,
+  markUserAsWelcomed 
 } from '../controllers/userController.js';
 import authMiddleware from '../middleware/auth.js';
 import multer from 'multer';
@@ -66,7 +67,7 @@ userRouter.post('/register',
     registerUser);
 
 
-userRouter.get('/test', (req, res) => { // <-- Change to userRouter
+userRouter.get('/test', (req, res) => { 
     res.send("User route test is working!");
 });
 userRouter.post('/login', loginUser);
@@ -82,5 +83,5 @@ userRouter.post('/forgot-password', forgotPassword);
 userRouter.post('/reset-password/:id/:token', resetPassword);
 
 userRouter.put('/profile', authMiddleware, updateUserProfile);
-
+userRouter.post('/mark-welcomed', authMiddleware, markUserAsWelcomed);
 export default userRouter;

@@ -172,14 +172,55 @@ const updateNotificationPreferences = async (req, res) => {
 };
 
 
+// const deleteAccount = async (req, res) => {
+//     try {
+//         await UserModel.findByIdAndDelete(req.userId);
+//         res.json({ success: true, message: "Account deleted successfully." });
+//     } catch (error) {
+//         res.status(500).json({ success: false, message: "An error occurred." });
+//     }
+// };
+
 const deleteAccount = async (req, res) => {
     try {
-        await UserModel.findByIdAndDelete(req.userId);
-        res.json({ success: true, message: "Account deleted successfully." });
+        const userId = req.userId;
+
+        // 1. Handle donations created BY this user (as a Donor)
+        // Find all donations made by this user
+        const userDonations = await DonationModel.find({ donorId: userId });
+        if (userDonations.length > 0) {
+            const donationIds = userDonations.map(d => d._id);
+            // Delete any tasks associated with those donations
+            await TaskModel.deleteMany({ donationId: { $in: donationIds } });
+            // Delete the donations themselves
+            await DonationModel.deleteMany({ donorId: userId });
+        }
+
+        // 2. Handle donations claimed BY this user (as a Receiver)
+        // Set the donation's status back to 'Available' and un-assign the receiver
+        await DonationModel.updateMany(
+            { claimedByReceiverId: userId },
+            { $set: { status: 'Available' }, $unset: { claimedByReceiverId: "" } }
+        );
+
+        // 3. Handle tasks assigned TO this user (as a Volunteer)
+        // Set the task's status back to 'Open' and un-assign the volunteer
+        await TaskModel.updateMany(
+            { volunteerId: userId, status: 'Assigned' },
+            { $set: { status: 'Open' }, $unset: { volunteerId: "" } }
+        );
+
+        // 4. Finally, delete the user themselves
+        await UserModel.findByIdAndDelete(userId);
+
+        res.json({ success: true, message: "Account and all associated data have been successfully deleted." });
+
     } catch (error) {
-        res.status(500).json({ success: false, message: "An error occurred." });
+        console.error("Error deleting account:", error);
+        res.status(500).json({ success: false, message: "An error occurred during account deletion." });
     }
 };
+
 
 
 const forgotPassword = async (req, res) => {
@@ -311,5 +352,14 @@ const rejectUser = async (req, res) => {
         res.status(500).json({ success: false, message: "Server error while rejecting user." });
     }
 };
+const markUserAsWelcomed = async (req, res) => {
+    try {
+        await UserModel.findByIdAndUpdate(req.userId, { hasBeenWelcomed: true });
+        res.json({ success: true, message: "User welcomed status updated." });
+    } catch (error) {
+        console.error("Error marking user as welcomed:", error);
+        res.status(500).json({ success: false, message: "An error occurred." });
+    }
+};
 
-export { registerUser, loginUser, getUserProfile, changePassword, updateNotificationPreferences, deleteAccount,forgotPassword, resetPassword ,updateUserProfile,listPendingUsers,approveUser,rejectUser} // Added here
+export { registerUser, loginUser, getUserProfile, changePassword, updateNotificationPreferences, deleteAccount,forgotPassword, resetPassword ,updateUserProfile,listPendingUsers,approveUser,rejectUser, markUserAsWelcomed} 
