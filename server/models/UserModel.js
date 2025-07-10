@@ -29,7 +29,7 @@ const userSchema = new mongoose.Schema({
         country: { type: String, default: 'India' }
     },
     identity: {
-        idType: { type: String, required: true, unique: true  }, 
+        idType: { type: String, required: true }, 
         idNumber: { type: String, required: true, unique: true },
         documentUrl: { type: String, required: true } 
     },
