@@ -64,6 +64,7 @@ const AdminDash = () => {
      const handleCleanupTasks = async () => {
         if (window.confirm("Are you sure you want to permanently delete all invalid tasks? This action cannot be undone.")) {
             try {
+                // const response = await axios.delete(`${url}/api/task/cleanup-orphaned`, { headers: { token } });
                 const response = await axios.delete(`${url}/api/task/cleanup-orphaned`, { headers: { token } });
                 if (response.data.success) {
                     toast.success(response.data.message);
