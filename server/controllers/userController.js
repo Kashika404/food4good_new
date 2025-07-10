@@ -74,15 +74,90 @@ const loginUser = async (req, res) => {
 
 
 
-const registerUser = async (req, res) => {
+// const registerUser = async (req, res) => {
     
+//     const errors = validationResult(req);
+//     if (!errors.isEmpty()) {
+        
+//         return res.status(400).json({ success: false, errors: errors.array() });
+//     }
+
+//      const { fullName, email, password, primaryRole, roleDetails, street, city, state, pincode, idType, idNumber } = req.body;
+
+//     if (!req.file) {
+//         return res.status(400).json({ success: false, message: "ID document upload is required." });
+//     }
+   
+//     const documentUrl = req.file.path; 
+
+//     try {
+//         // const exists = await UserModel.findOne({ email });
+//         // if (exists) {
+//         //     return res.json({ success: false, message: "User with this email already exists." });
+//         // }
+//         const emailExists = await UserModel.findOne({ email });
+//         if (emailExists) {
+//             return res.status(400).json({ success: false, message: "User with this email already exists." });
+//         }
+
+        
+//         const idExists = await UserModel.findOne({ 'identity.idNumber': idNumber });
+//         if (idExists) {
+//             return res.status(400).json({ success: false, message: "A user with this ID number already exists." });
+//         }
+
+//         const salt = await bcrypt.genSalt(10);
+//         const hashedPassword = await bcrypt.hash(password, salt);
+
+//         const verificationToken = crypto.randomBytes(32).toString('hex')
+       
+//         const newUser = new UserModel({
+//             fullName,
+//             email,
+//             password: hashedPassword,
+//             primaryRole,
+//              emailVerificationToken: verificationToken, 
+//             isEmailVerified: false, 
+//             roleDetails: roleDetails ? JSON.parse(roleDetails) : {},
+//             address: {
+//                 street,
+//                 city,
+//                 state,
+//                 pincode
+//             },
+//             identity: {
+//                 idType,
+//                 idNumber,
+//                 documentUrl: documentUrl
+//             }
+//         });
+
+
+//         const user = await newUser.save();
+
+//         // const token = createToken(user._id, user.primaryRole);
+//         // res.json({ success: true, token, role: user.primaryRole });
+//         await sendVerificationEmail(user, verificationToken);
+
+//         // IMPORTANT: We no longer send back a JWT token here.
+//         res.status(201).json({ success: true, message: "Registration successful! Please check your email to verify your account." });
+
+//     } catch (error) {
+//         console.error("Error in user registration:", error);
+//         res.status(500).json({ success: false, message: "An error occurred during registration." });
+//     }
+// };
+
+
+
+
+const registerUser = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        
         return res.status(400).json({ success: false, errors: errors.array() });
     }
 
-     const { fullName, email, password, primaryRole, roleDetails, street, city, state, pincode, idType, idNumber } = req.body;
+    const { fullName, email, password, primaryRole, roleDetails, street, city, state, pincode, idType, idNumber } = req.body;
 
     if (!req.file) {
         return res.status(400).json({ success: false, message: "ID document upload is required." });
@@ -91,55 +166,36 @@ const registerUser = async (req, res) => {
     const documentUrl = req.file.path; 
 
     try {
-        // const exists = await UserModel.findOne({ email });
-        // if (exists) {
-        //     return res.json({ success: false, message: "User with this email already exists." });
-        // }
         const emailExists = await UserModel.findOne({ email });
         if (emailExists) {
-            return res.status(400).json({ success: false, message: "User with this email already exists." });
+            // ✅ FIX: Return the error in the consistent array format
+            return res.status(400).json({ success: false, errors: [{ msg: "User with this email already exists." }] });
         }
-
-        // ✅ --- FIX: ADD THIS BLOCK TO CHECK FOR AN EXISTING ID NUMBER --- ✅
+        
         const idExists = await UserModel.findOne({ 'identity.idNumber': idNumber });
         if (idExists) {
-            return res.status(400).json({ success: false, message: "A user with this ID number already exists." });
+            // ✅ FIX: Return the error in the consistent array format
+            return res.status(400).json({ success: false, errors: [{ msg: "A user with this ID number already exists." }] });
         }
 
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
-
-        const verificationToken = crypto.randomBytes(32).toString('hex')
+        const verificationToken = crypto.randomBytes(32).toString('hex');
        
         const newUser = new UserModel({
             fullName,
             email,
             password: hashedPassword,
             primaryRole,
-             emailVerificationToken: verificationToken, 
+            emailVerificationToken: verificationToken, 
             isEmailVerified: false, 
-            roleDetails: roleDetails ? JSON.parse(roleDetails) : {},
-            address: {
-                street,
-                city,
-                state,
-                pincode
-            },
-            identity: {
-                idType,
-                idNumber,
-                documentUrl: documentUrl
-            }
+            roleDetails: JSON.parse(roleDetails),
+            address: { street, city, state, pincode },
+            identity: { idType, idNumber, documentUrl: documentUrl }
         });
 
-
         const user = await newUser.save();
-
-        // const token = createToken(user._id, user.primaryRole);
-        // res.json({ success: true, token, role: user.primaryRole });
         await sendVerificationEmail(user, verificationToken);
-
-        // IMPORTANT: We no longer send back a JWT token here.
         res.status(201).json({ success: true, message: "Registration successful! Please check your email to verify your account." });
 
     } catch (error) {
@@ -147,7 +203,6 @@ const registerUser = async (req, res) => {
         res.status(500).json({ success: false, message: "An error occurred during registration." });
     }
 };
-
 
 const getUserProfile = async (req, res) => {
     try {
