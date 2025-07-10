@@ -97,7 +97,13 @@ const Login = () => {
                 }
             } catch (error) {
                
+                // toast.error("An error occurred during login.");
+                if (error.response) {
+                toast.error(error.response.data.message);
+            } else {
+                // Handle network errors or other issues
                 toast.error("An error occurred during login.");
+            }
 
             }
         } else {
