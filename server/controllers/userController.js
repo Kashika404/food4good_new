@@ -2,7 +2,7 @@
 import UserModel from "../models/UserModel.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
-import DonationModel from "../models/DonationModel.js"; // ✅ ENSURE THIS LINE EXISTS
+import DonationModel from "../models/DonationModel.js"; 
 import TaskModel from "../models/TaskModel.js";
 import validator from "validator";
 import nodemailer from 'nodemailer';
@@ -43,27 +43,7 @@ const createToken = (id, role) => {
 
 
 
-// const loginUser = async (req, res) => {
-//     const { email, password } = req.body;
-//     try {
-//         const user = await UserModel.findOne({ email });
-//         if (!user) {
-//             return res.json({ success: false, message: "User does not exist." });
-//         }
-//         const isMatch = await bcrypt.compare(password, user.password);
-//         if (!isMatch) {
-//             return res.json({ success: false, message: "Invalid credentials." });
-//         }
-   
-//         const token = createToken(user._id, user.primaryRole);
-//         res.json({ success: true, token, role: user.primaryRole });
-//     } catch (error) {
-//         console.error("Login Error:", error); 
-//         res.status(500).json({ success: false, message: "Error during login." });
-//     }
-// };
 
-// --- In your existing loginUser function ---
 const loginUser = async (req, res) => {
     const { email, password } = req.body;
     try {
@@ -72,7 +52,7 @@ const loginUser = async (req, res) => {
             return res.status(404).json({ success: false, message: "User does not exist." });
         }
         
-        // ✅ --- ADD THIS CHECK --- ✅
+     
         if (!user.isEmailVerified) {
             return res.status(401).json({ success: false, message: "Please verify your email address before logging in." });
         }
@@ -111,9 +91,19 @@ const registerUser = async (req, res) => {
     const documentUrl = req.file.path; 
 
     try {
-        const exists = await UserModel.findOne({ email });
-        if (exists) {
-            return res.json({ success: false, message: "User with this email already exists." });
+        // const exists = await UserModel.findOne({ email });
+        // if (exists) {
+        //     return res.json({ success: false, message: "User with this email already exists." });
+        // }
+        const emailExists = await UserModel.findOne({ email });
+        if (emailExists) {
+            return res.status(400).json({ success: false, message: "User with this email already exists." });
+        }
+
+        // ✅ --- FIX: ADD THIS BLOCK TO CHECK FOR AN EXISTING ID NUMBER --- ✅
+        const idExists = await UserModel.findOne({ 'identity.idNumber': idNumber });
+        if (idExists) {
+            return res.status(400).json({ success: false, message: "A user with this ID number already exists." });
         }
 
         const salt = await bcrypt.genSalt(10);
