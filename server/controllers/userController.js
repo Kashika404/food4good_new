@@ -185,32 +185,29 @@ const deleteAccount = async (req, res) => {
     try {
         const userId = req.userId;
 
-        // 1. Handle donations created BY this user (as a Donor)
-        // Find all donations made by this user
+        
         const userDonations = await DonationModel.find({ donorId: userId });
         if (userDonations.length > 0) {
             const donationIds = userDonations.map(d => d._id);
-            // Delete any tasks associated with those donations
+            
             await TaskModel.deleteMany({ donationId: { $in: donationIds } });
-            // Delete the donations themselves
+           
             await DonationModel.deleteMany({ donorId: userId });
         }
 
-        // 2. Handle donations claimed BY this user (as a Receiver)
-        // Set the donation's status back to 'Available' and un-assign the receiver
+      
         await DonationModel.updateMany(
             { claimedByReceiverId: userId },
-            { $set: { status: 'Available' }, $unset: { claimedByReceiverId: "" } }
+            { $set: { status: 'Available' }, $unset: { claimedByReceiverId: 1 } }
         );
 
-        // 3. Handle tasks assigned TO this user (as a Volunteer)
-        // Set the task's status back to 'Open' and un-assign the volunteer
+       
         await TaskModel.updateMany(
             { volunteerId: userId, status: 'Assigned' },
             { $set: { status: 'Open' }, $unset: { volunteerId: "" } }
         );
 
-        // 4. Finally, delete the user themselves
+       
         await UserModel.findByIdAndDelete(userId);
 
         res.json({ success: true, message: "Account and all associated data have been successfully deleted." });
