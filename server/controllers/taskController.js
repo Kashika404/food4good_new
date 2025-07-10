@@ -156,14 +156,12 @@ export const completeTask = async (req, res) => {
     }
 };
 
-
 export const deleteOrphanedTasks = async (req, res) => {
     try {
-        // Find all tasks and populate the donationId to check its validity
         const allTasks = await TaskModel.find({}).populate('donationId');
 
         const orphanedTaskIds = allTasks
-            .filter(task => !task.donationId) // Filter tasks where the donation doesn't exist at all
+            .filter(task => !task.donationId)
             .map(task => task._id);
 
         if (orphanedTaskIds.length > 0) {

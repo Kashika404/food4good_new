@@ -3,10 +3,6 @@ import { listOpenTasks, assignTaskToVolunteer, getVolunteerStats, listVolunteerT
 import authMiddleware from '../middleware/auth.js';
 import adminAuth from '../middleware/adminAuth.js';
 
-
-import { listOpenTasks, assignTaskToVolunteer, getVolunteerStats, listVolunteerTasks,completeTask } from '../controllers/taskController.js';
-import authMiddleware from '../middleware/auth.js';
-
 const taskRouter = express.Router();
 
 
