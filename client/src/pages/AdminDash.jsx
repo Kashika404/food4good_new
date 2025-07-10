@@ -58,6 +58,18 @@ const AdminDash = () => {
                 toast.error("Failed to reject user.");
             }
         }
+         const handleCleanupTasks = async () => {
+        if (window.confirm("Are you sure you want to permanently delete all invalid tasks? This action cannot be undone.")) {
+            try {
+                const response = await axios.delete(`${url}/api/task/cleanup-orphaned`, { headers: { token } });
+                if (response.data.success) {
+                    toast.success(response.data.message);
+                }
+            } catch (error) {
+                toast.error("Failed to clean up tasks.");
+            }
+        }
+    };
     };
 
     return (
@@ -116,6 +128,21 @@ const AdminDash = () => {
                             )}
                         </tbody>
                     </table>
+                    <div className="mt-12">
+                     <h2 className="text-xl font-bold text-neutral-800 mb-4">Data Maintenance</h2>
+                     <div className="bg-white shadow-md rounded-lg p-6 flex justify-between items-center">
+                        <div>
+                            <p className="font-semibold text-gray-800">Clean Up Invalid Tasks</p>
+                            <p className="text-sm text-gray-600 mt-1">This will permanently remove any tasks that are linked to non-existent or incomplete donations.</p>
+                        </div>
+                        <button
+                            onClick={handleCleanupTasks}
+                            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors"
+                        >
+                            Run Cleanup
+                        </button>
+                     </div>
+                </div>
                 </div>
             </main>
         </div>
