@@ -8,7 +8,7 @@ import DonationList from '../components/Dashboard/DonationList';
 import AddDonationModal from '../components/Dashboard/AddDonationModal';
 import ProfileMenu from '../components/Dashboard/ProfileMenu';
 import logo from '../assets/logo.png';
-// import PendingPage from '../components/Dashboard/PendingPage';
+import PendingPage from '../components/Dashboard/PendingPage';
 import ApprovalModal from '../components/Dashboard/ApprovalModal.jsx';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { toast } from 'react-toastify';
@@ -22,12 +22,11 @@ const DonorDash = () => {
     const [donations, setDonations] = useState([]);
     const [stats, setStats] = useState({ available: 0, claimed: 0, total: 0 });
     const [showAddDonationModal, setShowAddDonationModal] = useState(false);
-    // const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
-    //  const [showApprovalModal, setShowApprovalModal] = useState(false);
     const [profile, setProfile] = useState(null);
     const [isProfileLoading, setIsProfileLoading] = useState(true);
 const [showApprovalModal, setShowApprovalModal] = useState(false);
     const profileMenuRef = useRef(null);
+     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
    
     const fetchDonorData = async () => {
