@@ -8,7 +8,7 @@ import DonationList from '../components/Dashboard/DonationList';
 import AddDonationModal from '../components/Dashboard/AddDonationModal';
 import ProfileMenu from '../components/Dashboard/ProfileMenu';
 import logo from '../assets/logo.png';
-import PendingPage from '../components/Dashboard/PendingPage';
+// import PendingPage from '../components/Dashboard/PendingPage';
 import ApprovalModal from '../components/Dashboard/ApprovalModal.jsx';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { toast } from 'react-toastify';
@@ -22,8 +22,11 @@ const DonorDash = () => {
     const [donations, setDonations] = useState([]);
     const [stats, setStats] = useState({ available: 0, claimed: 0, total: 0 });
     const [showAddDonationModal, setShowAddDonationModal] = useState(false);
-    const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
-     const [showApprovalModal, setShowApprovalModal] = useState(false);
+    // const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+    //  const [showApprovalModal, setShowApprovalModal] = useState(false);
+    const [profile, setProfile] = useState(null);
+    const [isProfileLoading, setIsProfileLoading] = useState(true);
+const [showApprovalModal, setShowApprovalModal] = useState(false);
     const profileMenuRef = useRef(null);
 
    
@@ -62,37 +65,36 @@ const DonorDash = () => {
     // }, [token, loading]); 
 
     useEffect(() => {
-        const fetchInitialData = async () => {
-            if (token) {
-                try {
-                    const profileRes = await axios.get(`${url}/api/user/profile`, { headers: { token } });
-                    if (profileRes.data.success) {
-                        const userProfile = profileRes.data.user;
-                        setProfile(userProfile);
+    const fetchInitialData = async () => {
+        if (token) {
+            try {
+                const profileRes = await axios.get(`${url}/api/user/profile`, { headers: { token } });
+                if (profileRes.data.success) {
+                    const userProfile = profileRes.data.user;
+                    setProfile(userProfile);
 
-                        // --- THIS IS THE LOGIC FOR THE MODAL ---
-                        if (userProfile.verificationStatus === 'Verified' && !userProfile.hasBeenWelcomed) {
-                            setShowApprovalModal(true);
-                        }
-                        // --- END LOGIC FOR MODAL ---
-
-                        if (userProfile.verificationStatus === 'Verified') {
-                            fetchDonorData();
-                        }
+                    if (userProfile.verificationStatus === 'Verified' && !userProfile.hasBeenWelcomed) {
+                        setShowApprovalModal(true);
                     }
-                } // ... (rest of useEffect is the same)
-                 finally {
-                    setIsProfileLoading(false);
+                    
+                    if (userProfile.verificationStatus === 'Verified') {
+                        fetchDonorData(); // Your function to get donation listings
+                    }
                 }
-            } else if (!loading) {
-                 navigate('/');
+            } catch (error) {
+                console.error("Failed to fetch profile", error);
+            } finally {
+                setIsProfileLoading(false);
             }
-        };
-        
-        if (!loading) {
-            fetchInitialData();
+        } else if (!loading) {
+             navigate('/');
         }
-    }, [token, loading]);
+    };
+    
+    if (!loading) {
+        fetchInitialData();
+    }
+}, [token, loading]);
     
 
     const handleCloseApprovalModal = async () => {
@@ -187,6 +189,19 @@ const DonorDash = () => {
     if (loading) {
         return <div className="flex justify-center items-center min-h-screen"><p>Loading application...</p></div>;
     }
+    if (isProfileLoading) {
+    return <div className="flex justify-center items-center min-h-screen"><p>Loading Your Profile...</p></div>;
+}
+
+if (!profile) {
+    return <div className="text-center py-20">Could not load user profile. Please try logging in again.</div>;
+}
+
+if (profile.verificationStatus === 'Pending') {
+    return <div className="px-4 sm:px-6 lg:px-8 py-8"><PendingPage role={profile.primaryRole} /></div>;
+}
+
+// ... etc.
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-green-50/50 to-orange-50/50">
