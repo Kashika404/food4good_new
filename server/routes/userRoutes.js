@@ -12,7 +12,8 @@ import {
   forgotPassword,
   resetPassword,
   updateUserProfile,
-  markUserAsWelcomed 
+  markUserAsWelcomed,
+  verifyUserEmail
 } from '../controllers/userController.js';
 import authMiddleware from '../middleware/auth.js';
 import multer from 'multer';
@@ -84,4 +85,5 @@ userRouter.post('/reset-password/:id/:token', resetPassword);
 
 userRouter.put('/profile', authMiddleware, updateUserProfile);
 userRouter.post('/mark-welcomed', authMiddleware, markUserAsWelcomed);
+userRouter.get('/verify-email', verifyUserEmail);
 export default userRouter;

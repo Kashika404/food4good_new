@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-// 1. Create a transporter object using Gmail SMTP
+
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -12,7 +12,7 @@ const transporter = nodemailer.createTransport({
     },
 });
 
-// 2. Email for when a user's account is approved
+
 export const sendApprovalEmail = async (user) => {
     if (!user || !user.email) return;
 
@@ -28,7 +28,7 @@ export const sendApprovalEmail = async (user) => {
     });
 };
 
-// 3. Email for when a user's account is rejected
+
 export const sendRejectionEmail = async (user) => {
     if (!user || !user.email) return;
 
@@ -44,7 +44,7 @@ export const sendRejectionEmail = async (user) => {
     });
 };
 
-// 4. Email for the Donor when their donation is claimed
+
 export const sendDonationClaimedEmail = async (donor, receiver, donation) => {
     if (!donor || !donor.email) return;
 
@@ -62,7 +62,7 @@ export const sendDonationClaimedEmail = async (donor, receiver, donation) => {
     });
 };
 
-// 5. Email for all parties when a donation is completed
+
 export const sendDonationCompletedEmail = async (donor, receiver, volunteer, donation) => {
     const emails = [donor.email, receiver.email, volunteer.email].filter(Boolean);
     if (emails.length === 0) return;
@@ -71,12 +71,33 @@ export const sendDonationCompletedEmail = async (donor, receiver, volunteer, don
 
     await transporter.sendMail({
         from: `"Food4Good" <${process.env.EMAIL_USER}>`,
-        to: emails.join(', '), // Send to all three users
+        to: emails.join(', '), 
         subject: `Donation Completed: "${donation.title}"`,
         html: `
             <h1>Donation Successfully Completed!</h1>
             <p>This is to confirm that the donation of "<strong>${donation.title}</strong>" from <strong>${donor.fullName}</strong> has been successfully delivered to <strong>${receiverName}</strong> by our volunteer, <strong>${volunteer.fullName}</strong>.</p>
             <p>Thank you all for making a difference in our community!</p>
+        `,
+    });
+};
+
+
+export const sendVerificationEmail = async (user, token) => {
+    if (!user || !user.email) return;
+
+    
+    const verificationLink = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
+
+    await transporter.sendMail({
+        from: `"Food4Good" <${process.env.EMAIL_USER}>`,
+        to: user.email,
+        subject: 'Please Verify Your Email for Food4Good',
+        html: `
+            <h1>Welcome to Food4Good, ${user.fullName}!</h1>
+            <p>Thank you for registering. Please click the link below to verify your email address and activate your account.</p>
+            <a href="${verificationLink}" style="background-color: #f97316; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Verify Email Address</a>
+            <p>This link will expire in 1 hour.</p>
+            <p>If you did not sign up for an account, you can safely ignore this email.</p>
         `,
     });
 };

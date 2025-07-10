@@ -128,12 +128,20 @@ const Login = () => {
 
             try {
                 const response = await axios.post(`${url}/api/user/register`, formData);
-                if (response.data.success) {
-                    setToken(response.data.token);
-                    localStorage.setItem("token", response.data.token);
+                // if (response.data.success) {
+                //     setToken(response.data.token);
+                //     localStorage.setItem("token", response.data.token);
+                //     setShowLogin(false);
+                //     redirectToDashboard(response.data.role);
+                // } 
+                 if (response.data.success) {
+                    // ✅ --- THIS IS THE CHANGE --- ✅
+                    // Instead of setting a token, navigate to the check-email page
                     setShowLogin(false);
-                    redirectToDashboard(response.data.role);
-                } else {
+                    navigate('/check-email');
+                    toast.success(response.data.message); // Show success message from backend
+                } 
+                else {
                    
                      toast.error(response.data.message);
                 }

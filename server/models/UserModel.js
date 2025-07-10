@@ -33,6 +33,15 @@ const userSchema = new mongoose.Schema({
         idNumber: { type: String, required: true, unique: true },
         documentUrl: { type: String, required: true } 
     },
+     isEmailVerified: {
+        type: Boolean,
+        default: false
+    },
+    emailVerificationToken: {
+        type: String,
+        select: false 
+    },
+
     verificationStatus: {
         type: String,
         enum: ['Pending', 'Verified', 'Rejected'],

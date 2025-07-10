@@ -8,6 +8,8 @@ import validator from "validator";
 import nodemailer from 'nodemailer';
 import { validationResult } from "express-validator";
 import { sendApprovalEmail, sendRejectionEmail } from '../services/emailService.js';
+import crypto from 'crypto';
+import { sendVerificationEmail } from '../services/emailService.js'; 
 
 
 
@@ -41,16 +43,43 @@ const createToken = (id, role) => {
 
 
 
+// const loginUser = async (req, res) => {
+//     const { email, password } = req.body;
+//     try {
+//         const user = await UserModel.findOne({ email });
+//         if (!user) {
+//             return res.json({ success: false, message: "User does not exist." });
+//         }
+//         const isMatch = await bcrypt.compare(password, user.password);
+//         if (!isMatch) {
+//             return res.json({ success: false, message: "Invalid credentials." });
+//         }
+   
+//         const token = createToken(user._id, user.primaryRole);
+//         res.json({ success: true, token, role: user.primaryRole });
+//     } catch (error) {
+//         console.error("Login Error:", error); 
+//         res.status(500).json({ success: false, message: "Error during login." });
+//     }
+// };
+
+// --- In your existing loginUser function ---
 const loginUser = async (req, res) => {
     const { email, password } = req.body;
     try {
         const user = await UserModel.findOne({ email });
         if (!user) {
-            return res.json({ success: false, message: "User does not exist." });
+            return res.status(404).json({ success: false, message: "User does not exist." });
         }
+        
+        // ✅ --- ADD THIS CHECK --- ✅
+        if (!user.isEmailVerified) {
+            return res.status(401).json({ success: false, message: "Please verify your email address before logging in." });
+        }
+
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-            return res.json({ success: false, message: "Invalid credentials." });
+            return res.status(400).json({ success: false, message: "Invalid credentials." });
         }
    
         const token = createToken(user._id, user.primaryRole);
@@ -73,8 +102,6 @@ const registerUser = async (req, res) => {
         return res.status(400).json({ success: false, errors: errors.array() });
     }
 
-   
-
      const { fullName, email, password, primaryRole, roleDetails, street, city, state, pincode, idType, idNumber } = req.body;
 
     if (!req.file) {
@@ -91,15 +118,16 @@ const registerUser = async (req, res) => {
 
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
+
+        const verificationToken = crypto.randomBytes(32).toString('hex')
        
-
-    
-
         const newUser = new UserModel({
             fullName,
             email,
             password: hashedPassword,
             primaryRole,
+             emailVerificationToken: verificationToken, 
+            isEmailVerified: false, 
             roleDetails: roleDetails ? JSON.parse(roleDetails) : {},
             address: {
                 street,
@@ -116,8 +144,13 @@ const registerUser = async (req, res) => {
 
 
         const user = await newUser.save();
-        const token = createToken(user._id, user.primaryRole);
-        res.json({ success: true, token, role: user.primaryRole });
+
+        // const token = createToken(user._id, user.primaryRole);
+        // res.json({ success: true, token, role: user.primaryRole });
+        await sendVerificationEmail(user, verificationToken);
+
+        // IMPORTANT: We no longer send back a JWT token here.
+        res.status(201).json({ success: true, message: "Registration successful! Please check your email to verify your account." });
 
     } catch (error) {
         console.error("Error in user registration:", error);
@@ -363,7 +396,37 @@ const markUserAsWelcomed = async (req, res) => {
     } catch (error) {
         console.error("Error marking user as welcomed:", error);
         res.status(500).json({ success: false, message: "An error occurred." });
+
+
     }
 };
 
-export { registerUser, loginUser, getUserProfile, changePassword, updateNotificationPreferences, deleteAccount,forgotPassword, resetPassword ,updateUserProfile,listPendingUsers,approveUser,rejectUser, markUserAsWelcomed} 
+
+const verifyUserEmail = async (req, res) => {
+    try {
+        const { token } = req.query; // Get token from query parameter
+        if (!token) {
+            return res.status(400).redirect(`${process.env.FRONTEND_URL}/email-verified?success=false`);
+        }
+
+        const user = await UserModel.findOne({ emailVerificationToken: token });
+
+        if (!user) {
+            // Token is invalid or has already been used
+            return res.status(400).redirect(`${process.env.FRONTEND_URL}/email-verified?success=false&message=Invalid or expired token.`);
+        }
+
+        user.isEmailVerified = true;
+        user.emailVerificationToken = undefined; // Clear the token so it can't be used again
+        await user.save();
+        
+        // Redirect to a success page on the frontend
+        res.redirect(`${process.env.FRONTEND_URL}/email-verified?success=true`);
+
+    } catch (error) {
+        console.error("Error verifying email:", error);
+        res.status(500).redirect(`${process.env.FRONTEND_URL}/email-verified?success=false&message=Server error.`);
+    }
+};
+
+export { registerUser, loginUser, getUserProfile, changePassword, updateNotificationPreferences, deleteAccount,forgotPassword, resetPassword ,updateUserProfile,listPendingUsers,approveUser,rejectUser, markUserAsWelcomed,verifyUserEmail } 

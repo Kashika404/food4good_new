@@ -11,6 +11,9 @@ import VolunteerDash from './pages/VolunteerDash';
 import ProfilePage from './pages/ProfilePage'; 
 import SettingsPage from './pages/SettingsPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
+import CheckEmailPage from './pages/CheckEmailPage';
+import EmailVerifiedPage from './pages/EmailVerifiedPage';
+
 
 import AdminDash from './pages/AdminDash';
 import { jwtDecode } from 'jwt-decode'; 
@@ -75,6 +78,8 @@ const App = () => {
 
       <Routes>
         <Route path='/' element={<Home />} />
+         <Route path="/check-email" element={<CheckEmailPage />} />
+        <Route path="/verify-email" element={<EmailVerifiedPage />} />
         <Route path='/donor-dash' element={<DonorDash />} />
         <Route path='/receiver-dash' element={<ReceiverDash/>}/>
         <Route path="/volunteer-dash" element={<VolunteerDash />} />
