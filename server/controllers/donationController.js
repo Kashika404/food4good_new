@@ -53,23 +53,22 @@ const listDonorDonations = async (req, res) => {
     }
 };
 
-// In server/controllers/donationController.js
+
 
 const removeDonation = async (req, res) => {
     try {
         const donationId = req.body.id;
         const donation = await DonationModel.findById(donationId);
 
-        // Security check: Make sure the person deleting is the original donor
+        
         if (!donation || donation.donorId.toString() !== req.userId) {
             return res.status(403).json({ success: false, message: "Unauthorized action." });
         }
 
-        // --- THIS IS THE FIX ---
-        // Before deleting the donation, delete any tasks associated with it.
+        
         await TaskModel.deleteMany({ donationId: donationId });
 
-        // Now, delete the donation itself
+      
         await DonationModel.findByIdAndDelete(donationId);
 
         res.json({ success: true, message: "Donation and any associated tasks were removed." });
@@ -134,11 +133,44 @@ const listAvailableDonations = async (req, res) => {
 };
 
 
+// const claimDonation = async (req, res) => {
+//     try {
+//         const donation = await DonationModel.findById(req.body.donationId);
+
+//          const receiver = await UserModel.findById(req.userId);
+
+//         if (!donation) {
+//             return res.status(404).json({ success: false, message: "Donation not found." });
+//         }
+//         if (donation.status !== 'Available') {
+//             return res.status(400).json({ success: false, message: "This donation has already been claimed." });
+//         }
+
+//         donation.status = 'Claimed';
+//         donation.claimedByReceiverId = req.userId;
+//         await donation.save();
+
+//         await new TaskModel({
+//             donationId: donation._id,
+//             urgency: 'Today'
+//         }).save();
+
+//           await sendDonationClaimedEmail(donation.donorId, receiver, donation);
+
+//         res.json({ success: true, message: "Donation claimed successfully! A task has been created for volunteers." });
+
+//     } catch (error) {
+//         console.error("Error claiming donation:", error);
+//         res.status(500).json({ success: false, message: "An error occurred." });
+//     }
+// };
+
+// In server/controllers/donationController.js
+
 const claimDonation = async (req, res) => {
     try {
-        const donation = await DonationModel.findById(req.body.donationId);
-
-         const receiver = await UserModel.findById(req.userId);
+        const donation = await DonationModel.findById(req.body.donationId).populate('donorId'); // Populate donorId to get their details
+        const receiver = await UserModel.findById(req.userId);
 
         if (!donation) {
             return res.status(404).json({ success: false, message: "Donation not found." });
@@ -151,12 +183,24 @@ const claimDonation = async (req, res) => {
         donation.claimedByReceiverId = req.userId;
         await donation.save();
 
+        // --- NEW, SMARTER URGENCY LOGIC ---
+        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        let taskUrgency = 'Flexible'; // Default to Flexible
+
+        // If the donation was created in the last 24 hours, make it 'Today'
+        if (donation.createdAt > twentyFourHoursAgo) {
+            taskUrgency = 'Today';
+        }
+
+        // Create the task with the dynamically set urgency
         await new TaskModel({
             donationId: donation._id,
-            urgency: 'Today'
+            urgency: taskUrgency
         }).save();
+        // --- END OF NEW LOGIC ---
 
-          await sendDonationClaimedEmail(donation.donorId, receiver, donation);
+        // The donor object is already populated from the query above
+        await sendDonationClaimedEmail(donation.donorId, receiver, donation);
 
         res.json({ success: true, message: "Donation claimed successfully! A task has been created for volunteers." });
 
