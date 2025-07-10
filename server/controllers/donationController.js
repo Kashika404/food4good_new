@@ -53,20 +53,31 @@ const listDonorDonations = async (req, res) => {
     }
 };
 
+// In server/controllers/donationController.js
+
 const removeDonation = async (req, res) => {
     try {
-        const donation = await DonationModel.findById(req.body.id);
-        if (donation.donorId.toString() !== req.userId) {
-            return res.status(403).json({ success: false, message: "Unauthorized." });
+        const donationId = req.body.id;
+        const donation = await DonationModel.findById(donationId);
+
+        // Security check: Make sure the person deleting is the original donor
+        if (!donation || donation.donorId.toString() !== req.userId) {
+            return res.status(403).json({ success: false, message: "Unauthorized action." });
         }
-        await DonationModel.findByIdAndDelete(req.body.id);
-        res.json({ success: true, message: "Donation removed." });
+
+        // --- THIS IS THE FIX ---
+        // Before deleting the donation, delete any tasks associated with it.
+        await TaskModel.deleteMany({ donationId: donationId });
+
+        // Now, delete the donation itself
+        await DonationModel.findByIdAndDelete(donationId);
+
+        res.json({ success: true, message: "Donation and any associated tasks were removed." });
     } catch (error) {
         console.error("Error removing donation:", error);
         res.status(500).json({ success: false, message: "Error removing donation." });
     }
 };
-
 const updateDonationQuantity = async (req, res) => {
     try {
         const { donationId, newQuantity } = req.body;
