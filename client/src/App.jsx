@@ -56,8 +56,8 @@ const App = () => {
   const location = useLocation(); 
 
   return (
-    <div className='px-4 sm:px-10 md:px-14 lg:px-28 min-h-screen bg-gradient-to-b from-teal-50 to-orange-50'>
-
+    // <div className='px-4 sm:px-10 md:px-14 lg:px-28 min-h-screen bg-gradient-to-b from-teal-50 to-orange-50'>  
+    <>
       <ToastContainer
         position="top-right"
         autoClose={4000} 
@@ -74,7 +74,7 @@ const App = () => {
       {showLogin && <Login />}
 
       {/* Show Navbar only on the homepage */}
-      {location.pathname === '/' && <Navbar />}
+      {/* {location.pathname === '/' && <Navbar />}
 
       <Routes>
         <Route path='/' element={<Home />} />
@@ -98,8 +98,34 @@ const App = () => {
         
       </Routes>
 
-      <Footer />
-    </div>
+      <Footer /> */}
+      {isSimpleLayout ? (
+                // For simple routes, just render the routes themselves
+                <Routes>
+                    <Route path="/reset-password/:id/:token" element={<ResetPasswordPage />} />
+                    <Route path="/verify-email" element={<EmailVerifiedPage />} />
+                    <Route path="/check-email" element={<CheckEmailPage />} />
+                </Routes>
+            ) : (
+                // For all other routes, use the main application layout with the gradient and footer
+                <div className='px-4 sm:px-10 md:px-14 lg:px-28 min-h-screen bg-gradient-to-b from-teal-50 to-orange-50'>
+                    {location.pathname === '/' && <Navbar />}
+                    <Routes>
+                        <Route path='/' element={<Home />} />
+                        <Route path='/donor-dash' element={<DonorDash />} />
+                        <Route path='/receiver-dash' element={<ReceiverDash />} />
+                        <Route path="/volunteer-dash" element={<VolunteerDash />} />
+                        <Route path="/profile" element={<ProfilePage />} />
+                        <Route path="/settings" element={<SettingsPage />} />
+                        <Route
+                            path="/admin-dash"
+                            element={<ProtectedRoute role="Admin"><AdminDash /></ProtectedRoute>}
+                        />
+                    </Routes>
+                    <Footer />
+                </div>
+            )}
+    </>
   );
 };
 
