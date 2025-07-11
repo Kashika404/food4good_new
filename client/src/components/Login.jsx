@@ -28,9 +28,11 @@ const Login = () => {
     const [roleDetails, setRoleDetails] = useState({});
     const [identityDocument, setIdentityDocument] = useState(null); 
     const [message, setMessage] = useState("");
+     const [showResendLink, setShowResendLink] = useState(false);
 
    
     const onChangeHandler = (e) => {
+      if (showResendLink) setShowResendLink(false); 
         const { name, value } = e.target;
         setData(prevData => ({ ...prevData, [name]: value }));
     };
@@ -60,8 +62,26 @@ const Login = () => {
         }
     };
 
+     const handleResendVerification = async (e) => {
+        e.preventDefault();
+        if (!data.email) {
+            toast.error("Please enter your email address first.");
+            return;
+        }
+        try {
+            const response = await axios.post(`${url}/api/user/resend-verification`, { email: data.email });
+            if (response.data.success) {
+                toast.success(response.data.message);
+                setShowResendLink(false); // Hide the link after it's clicked
+            }
+        } catch (error) {
+            toast.error(error.response?.data?.message || "An error occurred.");
+        }
+    };
+
     const onLogin = async (event) => {
         event.preventDefault();
+         setShowResendLink(false);
         let endpoint = "";
         let payload = {};
         setMessage("");
@@ -96,12 +116,14 @@ const Login = () => {
                     toast.error(response.data.message);
                 }
             } catch (error) {
-               
-                // toast.error("An error occurred during login.");
-                if (error.response) {
-                toast.error(error.response.data.message);
-            } else {
-                // Handle network errors or other issues
+                const errorMessage = error.response?.data?.message || "An error occurred during login.";
+                toast.error(errorMessage);
+                if (errorMessage.includes("Please verify your email")) {
+                    setShowResendLink(true);
+                }
+
+               else {
+                
                 toast.error("An error occurred during login.");
             }
 
@@ -134,18 +156,12 @@ const Login = () => {
 
             try {
                 const response = await axios.post(`${url}/api/user/register`, formData);
-                // if (response.data.success) {
-                //     setToken(response.data.token);
-                //     localStorage.setItem("token", response.data.token);
-                //     setShowLogin(false);
-                //     redirectToDashboard(response.data.role);
-                // } 
+               
                  if (response.data.success) {
-                    // ✅ --- THIS IS THE CHANGE --- ✅
-                    // Instead of setting a token, navigate to the check-email page
+                   
                     setShowLogin(false);
                     navigate('/check-email');
-                    toast.success(response.data.message); // Show success message from backend
+                    toast.success(response.data.message); 
                 } 
                 else {
                    
@@ -180,13 +196,10 @@ const Login = () => {
         {state === 'Forgot Password' ? (
             <>
                 <p className='text-sm mt-2 mb-4'>Enter your email and we'll send a link to reset your password.</p>
-                {/* <div className='border px-6 py-2 flex items-center gap-2 rounded-full mt-4'>
-                    <img src={assets.email_icon} alt="email" />
-                    <input name="email" type="email" className='outline-none text-sm' placeholder='Email id' required value={data.email} onChange={onChangeHandler} />
-                </div> */}
+             
 
 
-                {/* Your current code */}
+             
 <div className='border px-6 py-2 flex items-center gap-2 rounded-full mt-4'>
   <img src={assets.email_icon} alt="email" />
   <input name="email" type="email" className='outline-none text-sm' placeholder='Email id' required value={data.email} onChange={onChangeHandler} />
@@ -199,7 +212,7 @@ const Login = () => {
 
                 {state !== 'Login' && (
                   <>
-                    {/* Role and Sub-role fields are preserved */}
+                    
                     <div className='border px-6 py-2 flex items-center gap-2 rounded-full mt-5 '>
                       <label className='text-sm'>Role:</label>
                       <select required className='outline-none text-sm bg-transparent w-full text-slate-500' value={data.primaryRole} onChange={onRoleChange}>
@@ -297,6 +310,14 @@ const Login = () => {
                 )}
             </>
         )}
+        {showResendLink && (
+                    <p className="text-center my-3 text-sm">
+                        Didn't get an email?{' '}
+                        <a href="#" onClick={handleResendVerification} className="text-orange-500 font-semibold hover:underline">
+                            Resend verification link
+                        </a>
+                    </p>
+                )}
 
         <button type="submit" className='bg-orange-400 w-full text-white py-2 rounded-full mt-4'>
           {state === 'Login' ? 'Login' : state === 'Sign Up' ? 'Create Account' : 'Send Reset Link'}

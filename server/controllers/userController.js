@@ -74,81 +74,6 @@ const loginUser = async (req, res) => {
 
 
 
-// const registerUser = async (req, res) => {
-    
-//     const errors = validationResult(req);
-//     if (!errors.isEmpty()) {
-        
-//         return res.status(400).json({ success: false, errors: errors.array() });
-//     }
-
-//      const { fullName, email, password, primaryRole, roleDetails, street, city, state, pincode, idType, idNumber } = req.body;
-
-//     if (!req.file) {
-//         return res.status(400).json({ success: false, message: "ID document upload is required." });
-//     }
-   
-//     const documentUrl = req.file.path; 
-
-//     try {
-//         // const exists = await UserModel.findOne({ email });
-//         // if (exists) {
-//         //     return res.json({ success: false, message: "User with this email already exists." });
-//         // }
-//         const emailExists = await UserModel.findOne({ email });
-//         if (emailExists) {
-//             return res.status(400).json({ success: false, message: "User with this email already exists." });
-//         }
-
-        
-//         const idExists = await UserModel.findOne({ 'identity.idNumber': idNumber });
-//         if (idExists) {
-//             return res.status(400).json({ success: false, message: "A user with this ID number already exists." });
-//         }
-
-//         const salt = await bcrypt.genSalt(10);
-//         const hashedPassword = await bcrypt.hash(password, salt);
-
-//         const verificationToken = crypto.randomBytes(32).toString('hex')
-       
-//         const newUser = new UserModel({
-//             fullName,
-//             email,
-//             password: hashedPassword,
-//             primaryRole,
-//              emailVerificationToken: verificationToken, 
-//             isEmailVerified: false, 
-//             roleDetails: roleDetails ? JSON.parse(roleDetails) : {},
-//             address: {
-//                 street,
-//                 city,
-//                 state,
-//                 pincode
-//             },
-//             identity: {
-//                 idType,
-//                 idNumber,
-//                 documentUrl: documentUrl
-//             }
-//         });
-
-
-//         const user = await newUser.save();
-
-//         // const token = createToken(user._id, user.primaryRole);
-//         // res.json({ success: true, token, role: user.primaryRole });
-//         await sendVerificationEmail(user, verificationToken);
-
-//         // IMPORTANT: We no longer send back a JWT token here.
-//         res.status(201).json({ success: true, message: "Registration successful! Please check your email to verify your account." });
-
-//     } catch (error) {
-//         console.error("Error in user registration:", error);
-//         res.status(500).json({ success: false, message: "An error occurred during registration." });
-//     }
-// };
-
-
 
 
 const registerUser = async (req, res) => {
@@ -474,4 +399,32 @@ const verifyUserEmail = async (req, res) => {
     }
 };
 
-export { registerUser, loginUser, getUserProfile, changePassword, updateNotificationPreferences, deleteAccount,forgotPassword, resetPassword ,updateUserProfile,listPendingUsers,approveUser,rejectUser, markUserAsWelcomed,verifyUserEmail } 
+const resendVerificationEmail = async (req, res) => {
+    try {
+        const { email } = req.body;
+        const user = await UserModel.findOne({ email });
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User with this email does not exist." });
+        }
+        if (user.isEmailVerified) {
+            return res.status(400).json({ success: false, message: "This email has already been verified." });
+        }
+
+      
+        const verificationToken = crypto.randomBytes(32).toString('hex');
+        user.emailVerificationToken = verificationToken;
+        await user.save();
+
+    
+        await sendVerificationEmail(user, verificationToken);
+        
+        res.json({ success: true, message: "A new verification link has been sent to your email address." });
+
+    } catch (error) {
+        console.error("Error resending verification email:", error);
+        res.status(500).json({ success: false, message: "An error occurred." });
+    }
+};
+
+export { registerUser, loginUser, getUserProfile, changePassword, updateNotificationPreferences, deleteAccount,forgotPassword, resetPassword ,updateUserProfile,listPendingUsers,approveUser,rejectUser, markUserAsWelcomed,verifyUserEmail ,resendVerificationEmail} 
