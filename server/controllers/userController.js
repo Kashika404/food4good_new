@@ -72,10 +72,6 @@ const loginUser = async (req, res) => {
 
 
 
-
-
-
-
 const registerUser = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -93,13 +89,13 @@ const registerUser = async (req, res) => {
     try {
         const emailExists = await UserModel.findOne({ email });
         if (emailExists) {
-            // ✅ FIX: Return the error in the consistent array format
+           
             return res.status(400).json({ success: false, errors: [{ msg: "User with this email already exists." }] });
         }
         
         const idExists = await UserModel.findOne({ 'identity.idNumber': idNumber });
         if (idExists) {
-            // ✅ FIX: Return the error in the consistent array format
+            
             return res.status(400).json({ success: false, errors: [{ msg: "A user with this ID number already exists." }] });
         }
 
@@ -120,6 +116,8 @@ const registerUser = async (req, res) => {
         });
 
         const user = await newUser.save();
+         console.log(`[Register] Token created for ${user.email}: ${verificationToken}`);
+
         await sendVerificationEmail(user, verificationToken);
         res.status(201).json({ success: true, message: "Registration successful! Please check your email to verify your account." });
 
@@ -177,16 +175,7 @@ const updateNotificationPreferences = async (req, res) => {
 };
 
 
-// const deleteAccount = async (req, res) => {
-//     try {
-//         await UserModel.findByIdAndDelete(req.userId);
-//         res.json({ success: true, message: "Account deleted successfully." });
-//     } catch (error) {
-//         res.status(500).json({ success: false, message: "An error occurred." });
-//     }
-// };
 
-// In server/controllers/userController.js
 
 const deleteAccount = async (req, res) => {
     try {
@@ -374,7 +363,8 @@ const markUserAsWelcomed = async (req, res) => {
 
 const verifyUserEmail = async (req, res) => {
     try {
-        const { token } = req.query; // Get token from query parameter
+        const { token } = req.query; 
+         console.log(`[Verify] Verification attempt with token from URL: ${token}`);
         if (!token) {
             return res.status(400).redirect(`${process.env.FRONTEND_URL}/email-verified?success=false`);
         }
@@ -382,15 +372,15 @@ const verifyUserEmail = async (req, res) => {
         const user = await UserModel.findOne({ emailVerificationToken: token });
 
         if (!user) {
-            // Token is invalid or has already been used
+            
             return res.status(400).redirect(`${process.env.FRONTEND_URL}/email-verified?success=false&message=Invalid or expired token.`);
         }
 
         user.isEmailVerified = true;
-        user.emailVerificationToken = undefined; // Clear the token so it can't be used again
+        user.emailVerificationToken = undefined; 
         await user.save();
         
-        // Redirect to a success page on the frontend
+    
         res.redirect(`${process.env.FRONTEND_URL}/email-verified?success=true`);
 
     } catch (error) {

@@ -96,7 +96,7 @@ export const sendVerificationEmail = async (user, token) => {
             <h1>Welcome to Food4Good, ${user.fullName}!</h1>
             <p>Thank you for registering. Please click the link below to verify your email address and activate your account.</p>
             <a href="${verificationLink}" style="background-color: #f97316; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Verify Email Address</a>
-            <p>This link will expire in 1 hour.</p>
+           
             <p>If you did not sign up for an account, you can safely ignore this email.</p>
         `,
     });
