@@ -291,15 +291,39 @@ const resetPassword = async (req, res) => {
 };
 
 
+// const updateUserProfile = async (req, res) => {
+//     try {
+//         const updates = {
+//             fullName: req.body.fullName,
+//             address: req.body.address,
+//         };
+//         const user = await UserModel.findByIdAndUpdate(req.userId, updates, { new: true }).select('-password');
+//         res.json({ success: true, message: "Profile updated successfully.", user });
+//     } catch (error) {
+//         res.status(500).json({ success: false, message: "An error occurred while updating the profile." });
+//     }
+// };
 const updateUserProfile = async (req, res) => {
     try {
+        // Get all editable fields from the request body
+        const { fullName, address, roleDetails } = req.body;
+
         const updates = {
-            fullName: req.body.fullName,
-            address: req.body.address,
+            fullName,
+            address,
+            roleDetails
         };
+
         const user = await UserModel.findByIdAndUpdate(req.userId, updates, { new: true }).select('-password');
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found." });
+        }
+
         res.json({ success: true, message: "Profile updated successfully.", user });
+        
     } catch (error) {
+        console.error("Error updating user profile:", error);
         res.status(500).json({ success: false, message: "An error occurred while updating the profile." });
     }
 };
