@@ -86,6 +86,6 @@ userRouter.post('/reset-password/:id/:token', resetPassword);
 
 userRouter.put('/profile', authMiddleware, updateUserProfile);
 userRouter.post('/mark-welcomed', authMiddleware, markUserAsWelcomed);
-userRouter.get('/verify-email', verifyUserEmail);
+userRouter.post('/verify-email', verifyUserEmail);
 userRouter.post('/resend-verification', resendVerificationEmail);
 export default userRouter;

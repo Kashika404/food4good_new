@@ -387,7 +387,7 @@ const markUserAsWelcomed = async (req, res) => {
 
 const verifyUserEmail = async (req, res) => {
     try {
-        const { token } = req.query; 
+        const { token } = req.body; 
          console.log(`[Verify] Verification attempt with token from URL: ${token}`);
         if (!token) {
             return res.status(400).redirect(`${process.env.FRONTEND_URL}/email-verified?success=false`);
@@ -405,7 +405,8 @@ const verifyUserEmail = async (req, res) => {
         await user.save();
         
     
-        res.redirect(`${process.env.FRONTEND_URL}/email-verified?success=true`);
+        // res.redirect(`${process.env.FRONTEND_URL}/email-verified?success=true`);
+         res.json({ success: true, message: "Email verified successfully." })
 
     } catch (error) {
         console.error("Error verifying email:", error);

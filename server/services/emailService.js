@@ -86,8 +86,8 @@ export const sendVerificationEmail = async (user, token) => {
     if (!user || !user.email) return;
 
     
-    // const verificationLink = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
-    const verificationLink = `${process.env.BACKEND_URL}/api/user/verify-email?token=${token}`;
+    const verificationLink = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
+    // const verificationLink = `${process.env.BACKEND_URL}/api/user/verify-email?token=${token}`;
 
     await transporter.sendMail({
         from: `"Food4Good" <${process.env.EMAIL_USER}>`,
