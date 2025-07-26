@@ -78,7 +78,7 @@ const registerUser = async (req, res) => {
         return res.status(400).json({ success: false, errors: errors.array() });
     }
 
-    const { fullName, email, password, primaryRole, roleDetails, street, city, state, pincode, idType, idNumber } = req.body;
+    const { fullName, email, password, primaryRole, roleDetails, street, city, state, pincode, idType, idNumber ,phone} = req.body;
 
     if (!req.file) {
         return res.status(400).json({ success: false, message: "ID document upload is required." });
@@ -107,6 +107,7 @@ const registerUser = async (req, res) => {
             fullName,
             email,
             password: hashedPassword,
+             phone, 
             primaryRole,
             emailVerificationToken: verificationToken, 
             isEmailVerified: false, 
@@ -306,12 +307,13 @@ const resetPassword = async (req, res) => {
 const updateUserProfile = async (req, res) => {
     try {
         // Get all editable fields from the request body
-        const { fullName, address, roleDetails } = req.body;
+        const { fullName, address, roleDetails ,phone} = req.body;
 
         const updates = {
             fullName,
             address,
-            roleDetails
+            roleDetails,
+            phone
         };
 
         const user = await UserModel.findByIdAndUpdate(req.userId, updates, { new: true }).select('-password');

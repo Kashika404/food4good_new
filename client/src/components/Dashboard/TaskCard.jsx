@@ -1,6 +1,3 @@
-
-
-
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMapMarkerAlt, faBoxOpen, faClock, faRoute } from '@fortawesome/free-solid-svg-icons';
@@ -52,6 +49,13 @@ const TaskCard = ({ task, onTaskAction }) => {
             <span>Time Window: <span className="font-bold">{task.timeWindow}</span></span>
           </div>
         </div>
+        {task.status !== 'Open' && (task.donationId?.donorId?.phone || task.donationId?.claimedByReceiverId?.phone) && (
+            <div className="mt-4 pt-4 border-t border-gray-10t text-sm text-neutral-600 space-y-1">
+                <p className="font-semibold">Contact Info:</p>
+                {task.donationId?.donorId?.phone && <p><strong>Donor:</strong> <a href={`tel:${task.donationId.donorId.phone}`} className="text-blue-600 hover:underline">{task.donationId.donorId.phone}</a></p>}
+                {task.donationId?.claimedByReceiverId?.phone && <p><strong>Receiver:</strong> <a href={`tel:${task.donationId.claimedByReceiverId.phone}`} className="text-blue-600 hover:underline">{task.donationId.claimedByReceiverId.phone}</a></p>}
+            </div>
+        )}
       </div>
       
       <div className="px-5 pb-5 mt-auto">

@@ -141,6 +141,7 @@ const Login = () => {
             formData.append("city", data.city);
             formData.append("state", data.state);
             formData.append("pincode", data.pincode);
+            formData.append("phone", data.phone);
          
 
             formData.append("roleDetails", JSON.stringify(roleDetails)); 
@@ -276,6 +277,9 @@ const Login = () => {
                     </div>
                     <div className='border px-6 py-2 flex items-center gap-2 rounded-full mt-4'>
                         <input name="pincode" type="text" className='outline-none text-sm w-full' placeholder='Pincode' required value={data.pincode} onChange={onChangeHandler} />
+                    </div>
+                    <div className='border px-6 py-2 flex items-center gap-2 rounded-full mt-4'>
+                        <input name="phone" type="tel" className='outline-none text-sm w-full' placeholder='Phone Number (Optional)' value={data.phone || ''} onChange={onChangeHandler} />
                     </div>
                     <div className='border px-6 py-2 flex items-center gap-2 rounded-full mt-4'>
                         <select name="idType" required className='outline-none text-sm bg-transparent w-full text-slate-500' value={data.idType} onChange={onChangeHandler}>

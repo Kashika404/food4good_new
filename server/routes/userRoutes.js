@@ -62,6 +62,7 @@ userRouter.post('/register',
       body('city', 'City is required').notEmpty(),
       body('state', 'State is required').notEmpty(),
       body('pincode', 'Please enter a valid Indian pincode').isPostalCode('IN'),
+       body('phone').optional({ checkFalsy: true }).isString(),
       body('idNumber', 'ID Number is required').notEmpty(),
       body('idType', 'ID Type is required').notEmpty(),
       body('primaryRole', 'A user role must be selected').notEmpty()

@@ -38,8 +38,8 @@ export const listVolunteerTasks = async (req, res) => {
                 path: 'donationId',
                 model: DonationModel,
                 populate: [
-                    { path: 'donorId', model: UserModel, select: 'fullName roleDetails.organizationName' },
-                    { path: 'claimedByReceiverId', model: UserModel, select: 'fullName roleDetails.organizationName' }
+                    { path: 'donorId', model: UserModel, select: 'fullName roleDetails.organizationName phone' },
+                    { path: 'claimedByReceiverId', model: UserModel, select: 'fullName roleDetails.organizationName phone' }
                 ]
             });
         

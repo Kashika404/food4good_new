@@ -33,6 +33,7 @@ const ProfilePage = () => {
                     setUser(currentUser);
                     setFormData({
                         fullName: currentUser.fullName,
+                         phone: currentUser.phone,
                         address: { ...currentUser.address },
                         roleDetails: { ...currentUser.roleDetails }
                     });
@@ -167,6 +168,10 @@ const ProfilePage = () => {
                                     <p>{user.address.street}, {user.address.city}</p>
                                     <p>{user.address.state} - {user.address.pincode}</p>
                                     <p className="mt-2 text-xs text-gray-500">Member Since: {new Date(user.createdAt).toLocaleDateString()}</p>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Phone Number</label>
+                                    <input type="tel" name="phone" value={formData.phone || ''} onChange={handleInputChange} className="mt-1 w-full p-2 border border-gray-300 rounded-lg" />
                                 </div>
                                 <button onClick={() => setIsEditing(true)} className="mt-4 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold py-2 px-5 rounded-lg text-sm flex items-center gap-2 mx-auto sm:mx-0">
                                     <FontAwesomeIcon icon={faEdit} /> Edit Profile
